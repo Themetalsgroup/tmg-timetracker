@@ -2,6 +2,7 @@
 .claude/
 node_modules/
 _tmp/
+tools/preview/
 *.log
 .DS_Store
 Thumbs.db

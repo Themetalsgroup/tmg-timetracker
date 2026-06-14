@@ -1,6 +1,6 @@
 // Cache-first service worker for the app shell so the PWA opens offline once installed.
 // IMPORTANT: only same-origin GETs are cached — Microsoft Graph / login traffic is never touched.
-const CACHE = "tmg-tt-v2";
+const CACHE = "tmg-tt-v3";
 const ASSETS = [
   "./", "index.html", "style.css",
   "app.js", "config.js", "models.js", "db.js", "auth.js", "graph.js", "sync.js",
