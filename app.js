@@ -1,9 +1,9 @@
 // app.js — TMG Time Tracker. Offline capture + Microsoft 365 sync into the workbook.
 import { CONFIG, isConfigured, SAMPLE_PROJECTS } from "./config.js";
 import * as db from "./db.js";
-import { todayISO, serialToISO } from "./models.js";
+import { todayISO, serialToISO, dateToSerial } from "./models.js";
 import { initAuth, getAccount, signIn, signOut } from "./auth.js";
-import { flushOutbox, refreshProjects, recentTimeLog, setBillable, setReportSubmitted } from "./sync.js";
+import { flushOutbox, refreshProjects, recentTimeLog, setBillable, setReportSubmitted, fetchUpcoming } from "./sync.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -63,6 +63,7 @@ function wireTabs() {
     $$(".tab").forEach((t) => t.setAttribute("aria-current", String(t === btn)));
     for (const v of ["log", "schedule", "status"]) $(`#view-${v}`).hidden = v !== view;
     if (view === "status") loadStatus();
+    if (view === "schedule") loadSchedule();
   });
 }
 
@@ -98,6 +99,8 @@ async function runSync() {
     await flushOutbox();
     PROJECTS = await refreshProjects();
     updateProjectSelects();
+    await fetchUpcoming().catch(() => {});
+    renderUpcoming();
   } catch (e) {
     SYNC_ERR = friendly(e);
   } finally {
@@ -178,7 +181,9 @@ async function saveTime() {
 function renderSchedule() {
   $("#view-schedule").replaceChildren(
     el("h2", {}, "Schedule"),
-    el("p", { class: "hint" }, "Add an upcoming job to your calendar."),
+    el("div", { class: "section-label" }, "Next 30 days"),
+    el("div", { id: "sc-list", class: "cards" }, el("p", { class: "hint" }, "Loading…")),
+    el("div", { class: "section-label" }, "Add to schedule"),
     field("Date", el("input", { type: "date", value: todayISO(), id: "sc-date" })),
     field("Project", el("select", { id: "sc-project" }, ...projectOptions())),
     field("Task", el("select", { id: "sc-task" }, ...taskOptions())),
@@ -186,6 +191,7 @@ function renderSchedule() {
     el("div", { class: "form-msg", id: "sc-msg" }),
     el("button", { class: "save", onclick: saveSchedule }, "Add to schedule"),
   );
+  renderUpcoming();
 }
 
 async function saveSchedule() {
@@ -197,7 +203,52 @@ async function saveSchedule() {
   await bumpPending();
   renderSchedule();
   flash($("#sc-msg"), "Added.", true);
-  runSync();
+  await runSync();
+  renderUpcoming();
+}
+
+// Upcoming-schedule list (next 30 days) — merges the synced Calendar with not-yet-synced adds.
+async function loadSchedule() {
+  await renderUpcoming();
+  if (!isConfigured() || !AUTH_READY || !getAccount() || !navigator.onLine) return;
+  try { await fetchUpcoming(); await renderUpcoming(); } catch (e) { /* keep cached view */ }
+}
+
+async function renderUpcoming() {
+  const list = $("#sc-list");
+  if (!list) return;
+  const cached = (await db.getCache("calendar")) || [];
+  const pending = (await db.allOutbox())
+    .filter((o) => o.kind === "calendar")
+    .map((o) => ({ project: o.payload.project, task: o.payload.task, notes: o.payload.notes, date: dateToSerial(o.payload.date), pending: true }));
+  const today = dateToSerial(todayISO());
+  const items = [...cached, ...pending]
+    .filter((x) => typeof x.date === "number" && x.date >= today && x.date <= today + 30 && (x.project || x.task || x.notes))
+    .sort((a, b) => a.date - b.date);
+  if (!items.length) {
+    list.replaceChildren(el("p", { class: "hint" },
+      getAccount() ? "Nothing scheduled in the next 30 days." : "Sign in to load your schedule."));
+    return;
+  }
+  list.replaceChildren(...items.map(calCard));
+}
+
+function calCard(x) {
+  const sub = [x.project && x.task ? x.task : null, x.notes].filter(Boolean).join(" · ");
+  return el("div", { class: "card" },
+    el("div", { class: "card-top" },
+      el("span", { class: "card-proj" }, x.project || x.task || "(scheduled)"),
+      el("span", { class: "card-date" }, fmtDateDay(x.date))),
+    sub ? el("div", { class: "card-sub" }, sub) : null,
+    x.pending ? el("div", { class: "chips" }, el("span", { class: "chip pending" }, "pending sync")) : null,
+  );
+}
+
+function fmtDateDay(serial) {
+  try {
+    const [y, m, d] = serialToISO(serial).split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  } catch { return String(serial); }
 }
 
 // ---- Status (recent entries + quick toggles) ----

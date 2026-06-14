@@ -17,6 +17,18 @@ export async function refreshProjects() {
   return projects;
 }
 
+// Pull the Calendar (schedule) entries and cache them for the upcoming-30-days view.
+export async function fetchUpcoming() {
+  const token = await getToken();
+  const id = await graph.fileId(token);
+  const rows = await graph.readRange(token, id, CONFIG.sheets.calendar, "A4:F204");
+  const items = rows
+    .map((r) => ({ date: r[0], day: r[1], project: r[2], client: r[3], task: r[4], notes: r[5] }))
+    .filter((x) => x.date !== "" && x.date != null);
+  await db.setCache("calendar", items);
+  return items;
+}
+
 // Flush queued entries in order. Each lands in the first empty row; stops on first failure
 // so nothing is lost or duplicated.
 export async function flushOutbox(onProgress) {

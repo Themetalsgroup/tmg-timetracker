@@ -92,3 +92,7 @@ main { padding: 14px; max-width: 560px; margin: 0 auto; }
 .chip.invoiced { cursor: default; border-style: dashed; }
 .linkbtn { margin-top: 18px; background: none; border: none; color: var(--accent); font-size: .9rem; cursor: pointer; text-decoration: underline; }
 .hint.err { color: var(--err); }
+
+/* schedule list */
+.section-label { color: var(--muted); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 10px; }
+.chip.pending { color: var(--warn); border-color: var(--warn); border-style: dashed; cursor: default; }
