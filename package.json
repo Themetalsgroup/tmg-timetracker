@@ -1,0 +1,7 @@
+{
+  "name": "tmg-timetracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mobile PWA to log time and schedule into the TMG Time Tracker workbook (Microsoft 365 / OneDrive)."
+}

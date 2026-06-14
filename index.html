@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2937">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Time Tracker">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+<title>TMG Time Tracker</title>
+</head>
+<body>
+<div id="banner" class="banner" hidden></div>
+
+<main>
+  <section id="view-log" class="view"></section>
+  <section id="view-schedule" class="view" hidden></section>
+  <section id="view-status" class="view" hidden></section>
+</main>
+
+<nav id="tabs" class="tabs">
+  <button class="tab" type="button" data-view="log" aria-current="true">Log Time</button>
+  <button class="tab" type="button" data-view="schedule">Schedule</button>
+  <button class="tab" type="button" data-view="status">Status</button>
+</nav>
+
+<script src="vendor/msal-browser.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

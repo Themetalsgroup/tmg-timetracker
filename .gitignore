@@ -1,0 +1,7 @@
+# Local dev / editor config — not part of the published app
+.claude/
+node_modules/
+_tmp/
+*.log
+.DS_Store
+Thumbs.db
