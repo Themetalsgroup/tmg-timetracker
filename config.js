@@ -17,7 +17,7 @@ export const CONFIG = {
 
   // Task types — mirror the workbook's Task Type validation list.
   taskTypes: [
-    "Field Inspection", "NDT", "WQT", "WPS/PQR",
+    "Field Inspection", "Reinspection", "NDT", "WQT", "WPS/PQR",
     "Consulting", "Travel", "Office", "Training", "Other",
   ],
 };
