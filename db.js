@@ -32,6 +32,8 @@ async function run(store, mode, op) {
 
 export const getCache = (key) => run("cache", "readonly", (s) => s.get(key));
 export const setCache = (key, val) => run("cache", "readwrite", (s) => s.put(val, key));
+// Needed so a stale workbook id can be evicted and re-resolved (see graph.js).
+export const delCache = (key) => run("cache", "readwrite", (s) => s.delete(key));
 
 export const addOutbox = (rec) => run("outbox", "readwrite", (s) => s.add({ ...rec, createdAt: Date.now() }));
 export const allOutbox = () => run("outbox", "readonly", (s) => s.getAll());
